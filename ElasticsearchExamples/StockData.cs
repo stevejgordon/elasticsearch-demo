@@ -7,7 +7,7 @@ public class StockData
         { "AAL", "American Airlines Group Inc" },
         { "MSFT", "Microsoft Corporation" },
         { "AME", "AMETEK, Inc." },
-        { "M", "Macy's Inc" }
+        { "M", "Macy's inc" }
     };
 
     public StockData(string dataLine)
