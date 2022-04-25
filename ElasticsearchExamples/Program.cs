@@ -1,108 +1,70 @@
-﻿using Nest;
+﻿using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Helpers;
+using Elastic.Clients.Elasticsearch.Mapping;
+using Elastic.Transport;
+using ElasticsearchExamples;
 
-namespace ElasticsearchExamples;
+const string IndexName = "stock-demo-v1";
 
-internal class Program
+var settings = new ElasticsearchClientSettings(new Uri("https://localhost:9200"))
+    .CertificateFingerprint("E8:76:3D:91:81:8C:57:31:6F:2F:E0:4C:17:78:78:FB:38:CC:37:27:41:7A:94:B4:12:AA:B6:D1:D6:C4:4C:7D")
+    .Authentication(new BasicAuthentication("elastic", "password"));
+
+var client = new ElasticsearchClient(settings);
+
+var existsResponse = await client.Indices.ExistsAsync(IndexName);
+
+if (!existsResponse.Exists)
 {
-    private const string IndexName = "stock-demo-v1";
-
-    public static IElasticClient Client = new ElasticClient(new ConnectionSettings().DefaultIndex(IndexName));
-
-    private static async Task Main(string[] args)
-    {
-        var existsResponse = await Client.Indices.ExistsAsync(IndexName);
-
-        if (!existsResponse.Exists)
-        {
-            var newIndexResponse = await Client.Indices.CreateAsync(IndexName, i => i
-                .Map(m => m
-                    .AutoMap<StockData>()
-                    .Properties<StockData>(p => p.Keyword(k => k.Name(n => n.Symbol))))
-                .Settings(s => s.NumberOfShards(1).NumberOfReplicas(1)));
-
-            if (!newIndexResponse.IsValid || newIndexResponse.Acknowledged is false) throw new Exception("Oh no!");
-
-            var bulkAll = Client.BulkAll(ReadStockData(), r => r
-                .Index(IndexName)
-                .BackOffRetries(2)
-                .BackOffTime("30s")
-                .MaxDegreeOfParallelism(4)
-                .Size(1000));
-
-            bulkAll.Wait(TimeSpan.FromMinutes(10), r => Console.WriteLine("Data indexed"));
-        }
-
-        var symbolResponse = await Client.SearchAsync<StockData>(s => s
-            .Index(IndexName)
-            .Query(q => q
-                .Bool(b => b
-                    .Filter(f => f
-                        .Term(t => t.Field(fld => fld.Symbol).Value("MSFT")))))
-            .Size(20)
-            .Sort(srt => srt.Descending(d => d.Date)));
-
-        if (!symbolResponse.IsValid) throw new Exception("Oh no");
-
-        foreach (var data in symbolResponse.Documents)
-        {
-            //Console.WriteLine($"{data.Date}   {data.High} {data.Low}");
-        }
-
-        var fullTextSearchResponse = await Client.SearchAsync<StockData>(s => s.Index(IndexName)
-            .Query(q => q
-                .Match(m => m.Field(f => f.Name).Query("inc")))
-            .Size(20)
-            .Sort(srt => srt.Descending(d => d.Date)));
-
-        foreach (var data in fullTextSearchResponse.Documents)
-        {
-            //Console.WriteLine($"{data.Name} {data.Date}   {data.High} {data.Low}");
-        }
-
-        var aggExampleResponse = await Client.SearchAsync<StockData>(s => s
-            .Index(IndexName)
-            .Size(0)
-            .Query(q => q
-                .Bool(b => b
-                    .Filter(f => f
-                        .Term(t => t.Field(fld => fld.Symbol).Value("MSFT")))))
-            .Aggregations(a => a
-                .DateHistogram("by-month", dh => dh
-                    .CalendarInterval(DateInterval.Month)
-                    .Field(fld => fld.Date)
-                    .Order(HistogramOrder.KeyDescending)
-                    .Aggregations(agg => agg
-                        .Sum("trade-volumes", sum => sum.Field(fld => fld.Volume))))));
-
-        var monthlyBuckets = aggExampleResponse.Aggregations.DateHistogram("by-month").Buckets;
-
-        foreach (var monthlyBucket in monthlyBuckets)
-        {
-            var volume = monthlyBucket.Sum("trade-volumes").Value;
-            //Console.WriteLine($"{monthlyBucket.Date} : {volume:n0}");
-        }
-
-        var scrollAllObservable = Client.ScrollAll<StockData>("10s", Environment.ProcessorCount, scroll => scroll
-            .Search(s => s.Index(IndexName).MatchAll().Size(100))
-            .MaxDegreeOfParallelism(Environment.ProcessorCount));
-
-        scrollAllObservable.Wait(TimeSpan.FromMinutes(5), s =>
-        {
-            foreach (var doc in s.SearchResponse.Documents)
+    var newIndexResponse = await client.Indices.CreateAsync(IndexName, i => i
+        .Mappings(m => m
+            .Properties(new Elastic.Clients.Elasticsearch.Mapping.Properties
             {
-                Console.WriteLine(doc.Symbol);
-            }
-        });
-    }
+                { "symbol", new KeywordProperty() },
+                { "high", new FloatNumberProperty() },
+                { "low", new FloatNumberProperty() },
+                { "open", new FloatNumberProperty() },
+                { "close", new FloatNumberProperty() },
+            }))
+        //.Map(m => m
+        //    .AutoMap<StockData>()
+        //    .Properties<StockData>(p => p.Keyword(k => k.Name(n => n.Symbol))))
+        .Settings(s => s.NumberOfShards(1).NumberOfReplicas(0)));
 
-    public static IEnumerable<StockData> ReadStockData()
+    if (!newIndexResponse.IsValid || newIndexResponse.Acknowledged is false) throw new Exception("Oh no!");
+
+    try
     {
-        var file = new StreamReader("c:\\stock-data\\all_stocks_5yr.csv");
+        var bulkAll = client.BulkAll(ReadStockData(), r => r
+           .Index(IndexName)
+           .BackOffRetries(20)
+           .BackOffTime(TimeSpan.FromSeconds(10))
+           .ContinueAfterDroppedDocuments()
+           .DroppedDocumentCallback((r, d) =>
+           {
+               Console.WriteLine(r.Error.Reason);
+           })
+           .MaxDegreeOfParallelism(4)
+           .Size(1000));
 
-        string line;
-        while ((line = file.ReadLine()) is not null)
-        {
-            yield return new StockData(line);
-        }
+        bulkAll.Wait(TimeSpan.FromMinutes(10), r => Console.WriteLine("Data indexed"));
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.ToString());
     }
 }
+
+static IEnumerable<StockData> ReadStockData()
+{
+    var file = new StreamReader("c:\\stock-data\\all_stocks_5yr.csv");
+
+    string line;
+    while ((line = file.ReadLine()) is not null)
+    {
+        yield return new StockData(line);
+    }
+}
+
+Console.WriteLine("Press any key to exit.");
+Console.ReadKey();
