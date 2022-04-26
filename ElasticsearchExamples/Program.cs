@@ -1,4 +1,5 @@
 ﻿using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Aggregations;
 using Elastic.Clients.Elasticsearch.Helpers;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Clients.Elasticsearch.QueryDsl;
@@ -58,6 +59,8 @@ var symbolResponse = await client.SearchAsync<StockData>(s => s
         .Size(20)
         .Sort(srt => srt.Descending(d => d.Date)));
 
+if (!symbolResponse.IsValid) throw new Exception("Oh no");
+
 foreach (var data in symbolResponse.Documents)
 {
     //Console.WriteLine($"{data.Date}   {data.High:n2} {data.Low:n2}");
@@ -78,14 +81,37 @@ var fullTextSearchResponse = await client.SearchAsync<StockData>(s => s.Index(In
     .Size(20)
     .Sort(srt => srt.Descending(d => d.Date)));
 
+if (!fullTextSearchResponse.IsValid) throw new Exception("Oh no");
+
 foreach (var data in fullTextSearchResponse.Documents)
 {
-    Console.WriteLine($"{data.Name} {data.Date}   {data.High:n2} {data.Low:n2}");
+    //Console.WriteLine($"{data.Name} {data.Date}   {data.High:n2} {data.Low:n2}");
 }
 
-if (!symbolResponse.IsValid) throw new Exception("Oh no");
+var aggExampleResponse = await client.SearchAsync<StockData>(s => s
+    .Index(IndexName)
+    .Size(0)
+        .Query(q => q
+            .Bool(b => b
+                .Filter(new[] { new QueryContainer(new TermQuery { Field = "symbol", Value = "MSFT" }) })))
+    .Aggregations(a => a
+        .DateHistogram("by-month", dh => dh
+            .CalendarInterval(CalendarInterval.Month)
+            .Field(fld => fld.Date)
+            //.Order(HistogramOrder.KeyDescending) - COMING IN ALPHA 9
+            .Order(new HistogramOrder { Key = SortOrder.Desc })
+            .Aggregations(agg => agg
+                .Sum("trade-volumes", sum => sum.Field(fld => fld.Volume))))));
 
+if (!aggExampleResponse.IsValid) throw new Exception("Oh no");
 
+var monthlyBuckets = aggExampleResponse.Aggregations.GetDateHistogram("by-month").Buckets;
+
+foreach (var monthlyBucket in monthlyBuckets)
+{
+    var volume = monthlyBucket.GetSum("trade-volumes").Value;
+    Console.WriteLine($"{monthlyBucket.Key.DateTimeOffset:d} : {volume:n0}");
+}
 
 Console.WriteLine("Press any key to exit.");
 Console.ReadKey();
