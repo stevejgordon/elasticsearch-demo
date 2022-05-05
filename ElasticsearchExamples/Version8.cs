@@ -56,7 +56,7 @@ internal class Version8
                 .Index(IndexName)
                 .Query(q => q
                     .Bool(b => b
-                        .Filter(new[] { new QueryContainer(new TermQuery { Field = "symbol", Value = "MSFT" }) })))
+                        .Filter(f => f.Term(t => t.Field(f => f.Symbol).Value("MSFT")))))
                 .Size(20)
                 .Sort(srt => srt.Descending(d => d.Date)));
 
