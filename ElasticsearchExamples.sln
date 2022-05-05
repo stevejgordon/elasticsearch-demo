@@ -8,7 +8,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EBD89EAE-F0F4-4C3A-BB46-BB2A2360F129}"
 	ProjectSection(SolutionItems) = preProject
 		all_stocks_5yr.csv = all_stocks_5yr.csv
-		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
 Global
