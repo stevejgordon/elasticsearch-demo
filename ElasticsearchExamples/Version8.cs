@@ -13,12 +13,11 @@ internal class Version8
     {
         const string IndexName = "stock-demo-v8";
 
-        var settings = new ElasticsearchClientSettings(new Uri("https://localhost:9200"))
-            .CertificateFingerprint("E8:76:3D:91:81:8C:57:31:6F:2F:E0:4C:17:78:78:FB:38:CC:37:27:41:7A:94:B4:12:AA:B6:D1:D6:C4:4C:7D")
-            .Authentication(new BasicAuthentication("elastic", "password"))
-            .EnableDebugMode();
+        //var settings = new ElasticsearchClientSettings(new Uri("https://localhost:9200"))
+        //    .CertificateFingerprint("E8:76:3D:91:81:8C:57:31:6F:2F:E0:4C:17:78:78:FB:38:CC:37:27:41:7A:94:B4:12:AA:B6:D1:D6:C4:4C:7D")
+        //    .Authentication(new BasicAuthentication("elastic", "password"));
 
-        var client = new ElasticsearchClient(settings);
+        var client = new ElasticsearchClient("CLOUDID", new BasicAuthentication("elastic", "password"));
 
         var existsResponse = await client.Indices.ExistsAsync(IndexName);
 
@@ -68,7 +67,8 @@ internal class Version8
             Console.WriteLine($"{data.Date}   {data.High:n2} {data.Low:n2}");
         }
 
-        var fullTextSearchResponse = await client.SearchAsync<StockData>(s => s.Index(IndexName)
+        var fullTextSearchResponse = await client.SearchAsync<StockData>(s => s
+            .Index(IndexName)
             .Query(q => q
                 .Match(m => m.Field(f => f.Name).Query("inc")))
             .Size(20)
@@ -102,7 +102,7 @@ internal class Version8
         foreach (var monthlyBucket in monthlyBuckets)
         {
             var volume = monthlyBucket.GetSum("trade-volumes").Value;
-            Console.WriteLine($"{monthlyBucket.Key.DateTimeOffset:d} : {volume:n0}");
+            Console.WriteLine($"{monthlyBucket.Key.DateTimeOffset:yyyy-MM} : {volume:n0}");
         }
 
         static IEnumerable<StockData> ReadStockData()

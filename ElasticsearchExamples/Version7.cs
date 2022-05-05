@@ -1,4 +1,5 @@
-﻿using Nest;
+﻿using Elasticsearch.Net;
+using Nest;
 
 namespace ElasticsearchExamples;
 
@@ -8,13 +9,12 @@ internal class Version7
     {
         const string IndexName = "stock-demo-v7";
 
-        var settings = new ConnectionSettings(new Uri("https://localhost:9200"))
-            .CertificateFingerprint("E8:76:3D:91:81:8C:57:31:6F:2F:E0:4C:17:78:78:FB:38:CC:37:27:41:7A:94:B4:12:AA:B6:D1:D6:C4:4C:7D")
-            .BasicAuthentication("elastic", "password")
-            .EnableApiVersioningHeader()
-            .EnableDebugMode();
+        //var settings = new ConnectionSettings(new Uri("https://localhost:9200"))
+        //    .CertificateFingerprint("E8:76:3D:91:81:8C:57:31:6F:2F:E0:4C:17:78:78:FB:38:CC:37:27:41:7A:94:B4:12:AA:B6:D1:D6:C4:4C:7D")
+        //    .BasicAuthentication("elastic", "password")
+        //    .EnableApiVersioningHeader();
 
-        var client = new ElasticClient(settings);
+        var client = new ElasticClient("CLOUDID", new BasicAuthenticationCredentials("elastic", "password"));
 
         var existsResponse = await client.Indices.ExistsAsync(IndexName);
 
