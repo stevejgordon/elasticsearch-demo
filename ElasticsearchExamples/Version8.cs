@@ -64,7 +64,7 @@ internal class Version8
 
         foreach (var data in symbolResponse.Documents)
         {
-            Console.WriteLine($"{data.Date}   {data.High:n2} {data.Low:n2}");
+            Console.WriteLine($"{data.Date:d}   {data.High:n2} {data.Low:n2}");
         }
 
         var fullTextSearchResponse = await client.SearchAsync<StockData>(s => s
@@ -78,7 +78,7 @@ internal class Version8
 
         foreach (var data in fullTextSearchResponse.Documents)
         {
-            Console.WriteLine($"{data.Name} {data.Date}   {data.High:n2} {data.Low:n2}");
+            Console.WriteLine($"{data.Name} {data.Date:d}   {data.High:n2} {data.Low:n2}");
         }
 
         var aggExampleResponse = await client.SearchAsync<StockData>(s => s
@@ -86,7 +86,7 @@ internal class Version8
             .Size(0)
                 .Query(q => q
                     .Bool(b => b
-                        .Filter(new[] { new QueryContainer(new TermQuery { Field = "symbol", Value = "MSFT" }) })))
+                        .Filter(f => f.Term(t => t.Field(f => f.Symbol).Value("MSFT")))))
             .Aggregations(a => a
                 .DateHistogram("by-month", dh => dh
                     .CalendarInterval(CalendarInterval.Month)
