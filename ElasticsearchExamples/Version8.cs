@@ -2,7 +2,6 @@
 using Elastic.Clients.Elasticsearch.Aggregations;
 using Elastic.Clients.Elasticsearch.Helpers;
 using Elastic.Clients.Elasticsearch.Mapping;
-using Elastic.Clients.Elasticsearch.QueryDsl;
 using Elastic.Transport;
 
 namespace ElasticsearchExamples;
