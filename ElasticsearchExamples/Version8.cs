@@ -11,12 +11,13 @@ internal class Version8
     public static async Task ExecuteAsync()
     {
         const string IndexName = "stock-demo-v8";
+        const string CloudId = "CLOUDID";
 
         //var settings = new ElasticsearchClientSettings(new Uri("https://localhost:9200"))
         //    .CertificateFingerprint("E8:76:3D:91:81:8C:57:31:6F:2F:E0:4C:17:78:78:FB:38:CC:37:27:41:7A:94:B4:12:AA:B6:D1:D6:C4:4C:7D")
         //    .Authentication(new BasicAuthentication("elastic", "password"));
 
-        var client = new ElasticsearchClient("CLOUDID", new BasicAuthentication("elastic", "password"));
+        var client = new ElasticsearchClient(CloudId, new BasicAuthentication("elastic", "password"));
 
         var existsResponse = await client.Indices.ExistsAsync(IndexName);
 
