@@ -15,12 +15,12 @@ services:
           echo "Set the KIBANA_PASSWORD environment variable in the .env file";
           exit 1;
         fi;
-        if [ ! -f certs/ca.zip ]; then
+        if [ ! -f config/certs/ca.zip ]; then
           echo "Creating CA";
           bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
           unzip config/certs/ca.zip -d config/certs;
         fi;
-        if [ ! -f certs/certs.zip ]; then
+        if [ ! -f config/certs/certs.zip ]; then
           echo "Creating certs";
           echo -ne \
           "instances:\n"\
@@ -32,7 +32,7 @@ services:
           "      - 127.0.0.1\n"\
           > config/certs/instances.yml;
           bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-          unzip config/certs/certs.zip -d config/http-certs;
+          unzip config/certs/certs.zip -d config/certs;
         fi;
         echo "Setting file permissions"
         chown -R root:root config/certs;
@@ -55,7 +55,6 @@ services:
       setup:
         condition: service_healthy
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
-    container_name: es01
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata01:/usr/share/elasticsearch/data
@@ -96,31 +95,31 @@ services:
       retries: 120
 
   kibana:
-      depends_on:
-        es01:
-          condition: service_healthy
-      image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
-      volumes:
-        - certs:/usr/share/kibana/config/certs
-        - kibanadata:/usr/share/kibana/data
-      ports:
-        - ${KIBANA_PORT}:5601
-      environment:
-        - SERVERNAME=kibana
-        - ELASTICSEARCH_HOSTS=https://es01:9200
-        - ELASTICSEARCH_USERNAME=kibana_system
-        - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
-        - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
-      mem_limit: ${MEM_LIMIT}
-      healthcheck:
-        test:
-          [
-            "CMD-SHELL",
-            "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'",
-          ]
-        interval: 10s
-        timeout: 10s
-        retries: 120
+    depends_on:
+      es01:
+        condition: service_healthy
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    volumes:
+      - certs:/usr/share/kibana/config/certs
+      - kibanadata:/usr/share/kibana/data
+    ports:
+      - ${KIBANA_PORT}:5601
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=https://es01:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+    mem_limit: ${MEM_LIMIT}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
 
 volumes:
   certs:
