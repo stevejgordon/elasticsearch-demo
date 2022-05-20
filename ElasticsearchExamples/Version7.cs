@@ -37,6 +37,11 @@ internal class Version7
                 .Index(IndexName)
                 .BackOffRetries(2)
                 .BackOffTime("30s")
+                .ContinueAfterDroppedDocuments()
+                .DroppedDocumentCallback((r, d) =>
+                {
+                    Console.WriteLine(r.Error.Reason);
+                })
                 .MaxDegreeOfParallelism(4)
                 .Size(1000));
 
