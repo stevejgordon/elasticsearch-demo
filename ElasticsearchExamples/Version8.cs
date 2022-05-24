@@ -23,16 +23,14 @@ internal class Version8
 
         if (!existsResponse.Exists)
         {
-            var newIndexResponse = await client.Indices.CreateAsync(IndexName, i => i
+            var newIndexResponse = await client.Indices.CreateAsync<StockData>(IndexName, i => i
                 .Mappings(m => m
-                    .Properties(new Properties
-                    {
-                        { "symbol", new KeywordProperty() },
-                        { "high", new FloatNumberProperty() },
-                        { "low", new FloatNumberProperty() },
-                        { "open", new FloatNumberProperty() },
-                        { "close", new FloatNumberProperty() },
-                    }))
+                    .Properties(p => p
+                        .Keyword(n => n.Symbol)
+                        .FloatNumber(n => n.Open)
+                        .FloatNumber(n => n.Close)
+                        .FloatNumber(n => n.Low)
+                        .FloatNumber(n => n.High)))
                 .Settings(s => s.NumberOfShards(1).NumberOfReplicas(0)));
 
             if (!newIndexResponse.IsValid || newIndexResponse.Acknowledged is false) throw new Exception("Oh no!");
