@@ -13,11 +13,15 @@ internal class Version8
         const string IndexName = "stock-demo-v8";
         const string CloudId = "CLOUDID";
 
+        #region 'panic mode' docker fallabck
         //var settings = new ElasticsearchClientSettings(new Uri("https://localhost:9200"))
-        //    .CertificateFingerprint("E8:76:3D:91:81:8C:57:31:6F:2F:E0:4C:17:78:78:FB:38:CC:37:27:41:7A:94:B4:12:AA:B6:D1:D6:C4:4C:7D")
+        //    .CertificateFingerprint("03:48:48:2C:5A:F4:20:C9:28:6E:43:8C:34:37:8E:3A:C8:E6:E4:46:01:48:AD:BC:A2:2D:50:D0:2B:1E:A0:DB")
         //    .Authentication(new BasicAuthentication("elastic", "password"));
+        //var client = new ElasticsearchClient(settings);
+        #endregion
 
-        var client = new ElasticsearchClient(CloudId, new BasicAuthentication("elastic", "password"));
+        var client = new ElasticsearchClient(CloudId, 
+            new BasicAuthentication("elastic", "password"));
 
         var existsResponse = await client.Indices.ExistsAsync(IndexName);
 
@@ -31,9 +35,10 @@ internal class Version8
                         .FloatNumber(n => n.Close)
                         .FloatNumber(n => n.Low)
                         .FloatNumber(n => n.High)))
-                .Settings(s => s.NumberOfShards(1).NumberOfReplicas(0)));
+                .Settings(s => s.NumberOfShards(1).NumberOfReplicas(0))); // NOT PRODUCTION SETTINGS!!
 
-            if (!newIndexResponse.IsValid || newIndexResponse.Acknowledged is false) throw new Exception("Oh no!");
+            if (!newIndexResponse.IsValid || newIndexResponse.Acknowledged is false) 
+                throw new Exception("Oh no!");
 
             var bulkAll = client.BulkAll(ReadStockData(), r => r
                 .Index(IndexName)
