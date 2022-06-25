@@ -1,7 +1,6 @@
 ﻿using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Aggregations;
 using Elastic.Clients.Elasticsearch.Helpers;
-using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Transport;
 
 namespace ElasticsearchExamples;
@@ -100,7 +99,9 @@ internal class Version8
 
         if (!aggExampleResponse.IsValid) throw new Exception("Oh no");
 
-        var monthlyBuckets = aggExampleResponse.Aggregations.GetDateHistogram("by-month").Buckets;
+        var monthlyBuckets = aggExampleResponse.Aggregations
+            .GetDateHistogram("by-month")
+            .Buckets;
 
         foreach (var monthlyBucket in monthlyBuckets)
         {
