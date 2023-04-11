@@ -91,9 +91,6 @@ internal class Version8
                 .DateHistogram("by-month", dh => dh
                     .CalendarInterval(CalendarInterval.Month)
                     .Field(fld => fld.Date)
-<<<<<<< Updated upstream
-                    .Order(new List<KeyValuePair<Field, SortOrder>> {new(Field.KeyField, SortOrder.Desc)})
-=======
                     .Order(
                         new List<KeyValuePair<Field, SortOrder>>
                         {
