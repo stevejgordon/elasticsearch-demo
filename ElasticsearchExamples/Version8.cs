@@ -96,7 +96,6 @@ internal class Version8
                         {
                             new(Field.KeyField, SortOrder.Desc)
                         })
->>>>>>> Stashed changes
                     .Aggregations(agg => agg
                         .Sum("trade-volumes", sum => sum.Field(fld => fld.Volume))))));
 
