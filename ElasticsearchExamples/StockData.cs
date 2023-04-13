@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace ElasticsearchExamples;
+﻿namespace ElasticsearchExamples;
 
 public class StockData
 {
