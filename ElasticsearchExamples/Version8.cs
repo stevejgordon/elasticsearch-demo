@@ -79,7 +79,7 @@ internal class Version8
                 .ContinueAfterDroppedDocuments()
                 .DroppedDocumentCallback((r, d) => { Console.WriteLine(r.Error.Reason); })
                 .MaxDegreeOfParallelism(4)
-                .Size(1000));
+                .Size(5000));
 
             bulkAll.Wait(TimeSpan.FromMinutes(10), r => Console.WriteLine("Data indexed"));
         }
