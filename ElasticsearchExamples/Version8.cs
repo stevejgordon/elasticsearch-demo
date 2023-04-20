@@ -15,15 +15,16 @@ internal class Version8
 
         #region 'panic mode' docker fallabck
 
-        //var settings = new ElasticsearchClientSettings(new Uri("https://localhost:9200"))
-        //    .CertificateFingerprint("03:48:48:2C:5A:F4:20:C9:28:6E:43:8C:34:37:8E:3A:C8:E6:E4:46:01:48:AD:BC:A2:2D:50:D0:2B:1E:A0:DB")
-        //    .Authentication(new BasicAuthentication("elastic", "password"));
-        //var client = new ElasticsearchClient(settings);
+        // var settings = new ElasticsearchClientSettings(new Uri("https://localhost:9200"))
+        //     // Replace this with the fingerprint from the local server
+        //     .CertificateFingerprint("F7:2A:CF:4B:F6:1E:98:E6:44:23:74:65:FE:10:1B:B1:87:D0:EB:F5:61:EB:5B:CD:E8:D1:F6:18:4F:9D:B9:8F")
+        //     .Authentication(new BasicAuthentication("elastic", "password"));
+        // var client = new ElasticsearchClient(settings);
 
         #endregion
 
-        var client = new ElasticsearchClient(CloudId,
-            new BasicAuthentication("elastic", "password"));
+        //var client = new ElasticsearchClient(CloudId,
+        //    new BasicAuthentication("elastic", "password"));
 
         var existsResponse = await client.Indices.ExistsAsync(IndexName);
 

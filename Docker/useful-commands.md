@@ -1,6 +1,6 @@
  Access bash terminal for container:
 
-`docker exec -it docker_es01_1 bash`
+`docker exec -it docker-es01-1 bash`
 
 Navigate to config/certs/es01
 
