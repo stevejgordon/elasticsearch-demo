@@ -23,8 +23,8 @@ internal class Version8
 
         #endregion
 
-        //var client = new ElasticsearchClient(CloudId,
-        //    new BasicAuthentication("elastic", "password"));
+        var client = new ElasticsearchClient(CloudId,
+            new BasicAuthentication("elastic", "password"));
 
         var existsResponse = await client.Indices.ExistsAsync(IndexName);
 
