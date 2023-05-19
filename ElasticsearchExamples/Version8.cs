@@ -11,7 +11,7 @@ internal class Version8
     public static async Task ExecuteAsync()
     {
         const string IndexName = "stock-demo-v8";
-        const string CloudId = "CLOUDID";
+        const string CloudId = "TODO";
 
         #region 'panic mode' docker fallabck
 
@@ -23,8 +23,9 @@ internal class Version8
 
         #endregion
 
+        // DON'T EXPOSE PASSWORDS IN REAL APPS!!
         var client = new ElasticsearchClient(CloudId,
-            new BasicAuthentication("elastic", "password"));
+            new BasicAuthentication("elastic", "TODO"));
 
         var existsResponse = await client.Indices.ExistsAsync(IndexName);
 
@@ -32,26 +33,26 @@ internal class Version8
         {
             #region ObjectInitializer example
 
-            var floatProperty = new FloatNumberProperty();
-            var request = new CreateIndexRequest(IndexName)
-            {
-                Mappings = new()
-                {
-                    Properties = new(new Dictionary<PropertyName, IProperty>
-                    {
-                        { "symbol", new KeywordProperty() },
-                        { "open", floatProperty },
-                        { "close", floatProperty},
-                        { "low", floatProperty },
-                        { "high", floatProperty }
-                    })
-                },
-                Settings = new IndexSettings 
-                {
-                    NumberOfShards = 1,
-                    NumberOfReplicas = 0 
-                }
-            };
+            // var floatProperty = new FloatNumberProperty();
+            // var request = new CreateIndexRequest(IndexName)
+            // {
+            //     Mappings = new()
+            //     {
+            //         Properties = new(new Dictionary<PropertyName, IProperty>
+            //         {
+            //             { "symbol", new KeywordProperty() },
+            //             { "open", floatProperty },
+            //             { "close", floatProperty},
+            //             { "low", floatProperty },
+            //             { "high", floatProperty }
+            //         })
+            //     },
+            //     Settings = new IndexSettings 
+            //     {
+            //         NumberOfShards = 1,
+            //         NumberOfReplicas = 0 
+            //     }
+            // };
 
             #endregion
 
