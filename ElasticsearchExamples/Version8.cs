@@ -15,11 +15,11 @@ internal class Version8
 
         #region 'panic mode' docker fallabck
 
-        // var settings = new ElasticsearchClientSettings(new Uri("https://localhost:9200"))
-        //     // Replace this with the fingerprint from the local server
-        //     .CertificateFingerprint("F7:2A:CF:4B:F6:1E:98:E6:44:23:74:65:FE:10:1B:B1:87:D0:EB:F5:61:EB:5B:CD:E8:D1:F6:18:4F:9D:B9:8F")
-        //     .Authentication(new BasicAuthentication("elastic", "password"));
-        // var client = new ElasticsearchClient(settings);
+        //var settings = new ElasticsearchClientSettings(new Uri("https://localhost:9200"))
+        //    // Replace this with the fingerprint from the local server
+        //    .CertificateFingerprint("E4:21:7E:BF:F4:62:8B:C5:72:9C:D0:A8:51:D9:8C:65:E4:FF:28:96:1A:32:EE:F4:6D:BE:00:17:48:02:1C:54")
+        //    .Authentication(new BasicAuthentication("elastic", "password"));
+        //var client = new ElasticsearchClient(settings);
 
         #endregion
 
@@ -69,8 +69,8 @@ internal class Version8
             if (!newIndexResponse.IsValidResponse || newIndexResponse.Acknowledged is false)
                 throw new Exception("Oh no!");
 
-            //var stockData = GetSingleStockItem();
-            //await client.IndexAsync(stockData, IndexName);
+            foreach(var stockData in ReadStockData())
+                await client.IndexAsync(stockData, IndexName);
 
             // BULK INDEX ALL DATA
 
