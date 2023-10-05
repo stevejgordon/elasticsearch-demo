@@ -162,13 +162,5 @@ internal class Version8
                 yield return StockData.ParseFromFileLine(line);
             }
         }
-
-        static StockData GetSingleStockItem()
-        {
-            var file = new StreamReader("c:\\stock-data\\all_stocks_5yr.csv");
-            file.ReadLine(); // Skip the header
-            var line = file.ReadLine(); // Read first stock data line
-            return StockData.ParseFromFileLine(line);
-        }
     }
 }
