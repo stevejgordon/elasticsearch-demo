@@ -3,6 +3,7 @@ using Elastic.Clients.Elasticsearch.Aggregations;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Transport;
+using System.Diagnostics;
 
 namespace ElasticsearchExamples;
 
@@ -69,11 +70,13 @@ internal class Version8
             if (!newIndexResponse.IsValidResponse || newIndexResponse.Acknowledged is false)
                 throw new Exception("Oh no!");
 
-            foreach(var stockData in ReadStockData())
-                await client.IndexAsync(stockData, IndexName);
+            //foreach(var stockData in ReadStockData())
+            //    await client.IndexAsync(stockData, IndexName);
 
             // BULK INDEX ALL DATA
 
+            var sw = Stopwatch.StartNew();
+            
             var bulkAll = client.BulkAll(ReadStockData(), r => r
                 .Index(IndexName)
                 .BackOffRetries(20)
@@ -83,7 +86,16 @@ internal class Version8
                 .MaxDegreeOfParallelism(4)
                 .Size(5000));
 
-            bulkAll.Wait(TimeSpan.FromMinutes(10), r => Console.WriteLine("Data indexed"));
+            Console.WriteLine("Indexing started");
+
+            bulkAll.Wait(TimeSpan.FromMinutes(10), r => 
+            {
+                Interlocked.Increment(ref _bulkCounter);
+                Console.WriteLine($"Data indexed (Request {_bulkCounter})");
+            });
+
+            sw.Stop();
+            Console.WriteLine($"Indexing completed in ~{sw.Elapsed.Seconds}s");
         }
 
         // SCENARIO: GET 20 MOST RECENT STOCK DATA DOCUMENTS FOR 'MSFT' STOCKS.
