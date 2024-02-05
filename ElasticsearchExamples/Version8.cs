@@ -69,7 +69,7 @@ internal class Version8
                         .FloatNumber(n => n.High)))
                 .Settings(s => s.NumberOfShards(1).NumberOfReplicas(0))); // NOT PRODUCTION SETTINGS!!
 
-            if (!newIndexResponse.IsValidResponse || newIndexResponse.Acknowledged is false)
+            if (!newIndexResponse.IsValidResponse || !newIndexResponse.Acknowledged)
                 throw new Exception("Oh no!");
 
             //foreach(var stockData in ReadStockData())
@@ -92,8 +92,8 @@ internal class Version8
 
             bulkAll.Wait(TimeSpan.FromMinutes(10), r => 
             {
-                Interlocked.Increment(ref _bulkCounter);
-                Console.WriteLine($"Data indexed (Request {_bulkCounter})");
+                var value = Interlocked.Increment(ref _bulkCounter);
+                Console.WriteLine($"Data indexed (Request {value})");
             });
 
             sw.Stop();
