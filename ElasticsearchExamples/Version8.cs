@@ -9,6 +9,8 @@ namespace ElasticsearchExamples;
 
 internal class Version8
 {
+    private static volatile int _bulkCounter = 0;
+
     public static async Task ExecuteAsync()
     {
         const string IndexName = "stock-demo-v8";
